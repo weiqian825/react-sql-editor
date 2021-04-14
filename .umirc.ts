@@ -9,4 +9,7 @@ export default defineConfig({
   outputPath: 'docs-dist',
   mode: 'site',
   // more config: https://d.umijs.org/config
+  base: '/react-sql-editor',
+  publicPath: '/react-sql-editor/',
+  exportStatic: {}, // 将所有路由输出为 HTML 目录结构，以免刷新页面时 404
 });
