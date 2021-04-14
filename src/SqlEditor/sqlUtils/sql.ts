@@ -1,84 +1,74 @@
-import { AST } from 'node-sql-parser';
-import SqlValidator, { ValidatorConfig } from './Validator';
+import { ValidatorConfig } from './type';
+import SqlValidator from './Validator';
 
-export type ASTType = AST['type'];
-export enum QueryTicketType {
-  Other = 0,
-  InsertOrUpdateOrDelete = 1,
-  ViewSensitiveData = 2,
-}
-
-export enum QueryTicketStatus {
-  Apply = 0,
-  Approved = 1,
-  Rejected = 2,
-  Cancelled = 3,
-  Completed = 4,
-  PendingExecution = 5,
-}
-
-export enum ValidateSqlType {
-  read = 0,
-  write = 1,
-}
-
-export const COMMON_SQL_VALIDATORS: ValidatorConfig[] = [
-  {
+export const SQL_VALIDATORS: { [key: string]: ValidatorConfig } = {
+  isSystemSupportType: {
     validate: SqlValidator.validators.isSystemSupportType,
     level: 'error',
   },
-  {
+  hasWhereForTypesInNeed: {
     validate: SqlValidator.validators.hasWhereForTypesInNeed,
     level: 'error',
   },
-  {
+  limitForAllSelectQuery: {
     validate: SqlValidator.validators.limitForAllSelectQuery,
     level: 'error',
   },
-  {
+  limitNumForAllSelectQuery: {
     validate: SqlValidator.validators.limitNumForAllSelectQuery,
     level: 'error',
   },
-  {
+  notForbiddenFunc: {
     validate: SqlValidator.validators.notForbiddenFunc,
     level: 'error',
   },
-  {
+  notGroupBy: {
     validate: SqlValidator.validators.notGroupBy,
   },
-  {
+  notHaving: {
     validate: SqlValidator.validators.notHaving,
   },
-  {
+  notOrderBy: {
     validate: SqlValidator.validators.notOrderBy,
   },
-];
-
-export const WRITABLE_QUERY_VALIDATORS: ValidatorConfig[] = [
-  ...COMMON_SQL_VALIDATORS,
-  {
+  isWritableSqlType: {
     validate: SqlValidator.validators.isWritableSqlType,
     level: 'error',
   },
-];
-
-export const READABLE_QUERY_VALIDATORS: ValidatorConfig[] = [
-  ...COMMON_SQL_VALIDATORS,
-  {
+  isReadableSqlType: {
     validate: SqlValidator.validators.isReadableSqlType,
     level: 'error',
   },
-];
-
-export const QUERY_TYPE_MAP_VALIDATORS: {
-  [key in QueryTicketType]: ValidatorConfig[];
-} = {
-  [QueryTicketType.InsertOrUpdateOrDelete]: WRITABLE_QUERY_VALIDATORS,
-  [QueryTicketType.ViewSensitiveData]: READABLE_QUERY_VALIDATORS,
-  [QueryTicketType.Other]: READABLE_QUERY_VALIDATORS,
 };
 
-export enum SqlQueryResultType {
-  fail = 0,
-  success = 1,
-}
+export const getValidatorByKey = (keys: string[]) => {
+  return keys
+    .map(key => {
+      return SQL_VALIDATORS[key] ?? null;
+    })
+    .filter(item => item);
+};
+
+export const READ_VALIDATORS = getValidatorByKey([
+  'isSystemSupportType',
+  'hasWhereForTypesInNeed',
+  'limitForAllSelectQuery',
+  'limitNumForAllSelectQuery',
+  'notForbiddenFunc',
+  'notGroupBy',
+  'notHaving',
+  'notOrderBy',
+  'isReadableSqlType',
+]);
+
+export const WRITE_VALIDATORS = getValidatorByKey([
+  'isSystemSupportType',
+  'hasWhereForTypesInNeed',
+  'limitForAllSelectQuery',
+  'limitNumForAllSelectQuery',
+  'notForbiddenFunc',
+  'notGroupBy',
+  'notHaving',
+  'notOrderBy',
+  'isWritableSqlType',
+]);

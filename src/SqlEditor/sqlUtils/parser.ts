@@ -1,6 +1,6 @@
-import { ASTType } from './sql';
 import { AST, Parser } from 'node-sql-parser';
 import { ALL_AST_TYPE } from './constant';
+import { SqlParseResult } from './type';
 
 const sqlParser = new Parser();
 
@@ -10,22 +10,30 @@ const sqlParser = new Parser();
  * @param ast
  * @param filterTypes
  */
-function _parseAst(
-  extractedAstList: AST[],
-  ast: any,
-  filterTypes?: ASTType[],
-): void {
+function _parseAst({
+  ast,
+  filterTypes,
+  extractedAstList,
+}: {
+  ast: any;
+  filterTypes?: AST['type'][];
+  extractedAstList: AST[];
+}): void {
   if (!ast) return;
   if (Array.isArray(ast)) {
     for (const subAst of ast) {
-      _parseAst(extractedAstList, subAst, filterTypes);
+      _parseAst({ extractedAstList, ast: subAst, filterTypes });
     }
   } else if (typeof ast === 'object') {
     if ((filterTypes ?? ALL_AST_TYPE).includes(ast.type)) {
       extractedAstList.push(ast as AST);
     }
     for (const key in ast) {
-      _parseAst(extractedAstList, ast[key], filterTypes);
+      _parseAst({
+        extractedAstList,
+        ast: ast[key],
+        filterTypes,
+      });
     }
   }
 }
@@ -35,9 +43,16 @@ function _parseAst(
  * @param sql
  * @param filterTypes 不处理的 AST 类型
  */
-export const parseSql = (sql: string, filterTypes?: ASTType[]) => {
-  const { tableList, columnList, ast } = sqlParser.parse(sql);
-
+export const parseSql = ({
+  sql = '',
+  filterTypes,
+}: {
+  sql: string;
+  filterTypes?: AST['type'][];
+}): SqlParseResult => {
+  const { tableList, columnList, ast } = sqlParser.parse(sql, {
+    database: 'MySQL',
+  });
   const sqlDataList: {
     ast: AST;
     sql: string;
@@ -56,7 +71,11 @@ export const parseSql = (sql: string, filterTypes?: ASTType[]) => {
       } = sqlParser.parse(sql);
 
       const extractedAstList: AST[] = [];
-      _parseAst(extractedAstList, oneAst, filterTypes);
+      _parseAst({
+        extractedAstList,
+        ast: oneAst,
+        filterTypes,
+      });
       sqlDataList.push({
         ast: oneAst,
         sql: oneSql,
@@ -67,7 +86,11 @@ export const parseSql = (sql: string, filterTypes?: ASTType[]) => {
     });
   } else {
     const extractedAstList: AST[] = [];
-    _parseAst(extractedAstList, ast, filterTypes);
+    _parseAst({
+      extractedAstList,
+      ast,
+      filterTypes,
+    });
     sqlDataList.push({
       ast,
       sql,

@@ -1,82 +1,109 @@
 import { parseSql } from './parser';
-import SqlValidator, { SqlTypeEnum, ValidateResult } from './Validator';
-import {
-  READABLE_QUERY_VALIDATORS,
-  ValidateSqlType,
-  WRITABLE_QUERY_VALIDATORS,
-} from './sql';
+import SqlValidator from './Validator';
+import { ValidateResult, ValidateSqlResult, ValidatorConfig } from './type';
+import { SqlErrorTypeEnum } from './enum';
 
-export const validateSql = (
-  sql: string,
-  validateType: ValidateSqlType = ValidateSqlType.read,
-) => {
+const __validateSql = ({
+  sql = '',
+  validators = [],
+  maxSqlNum = 1,
+}: {
+  sql: string;
+  validators: ValidatorConfig[];
+  maxSqlNum?: number;
+}): ValidateSqlResult => {
   if (!sql) {
     return {
-      type: SqlTypeEnum.emptySql,
+      sqlParseResult: null,
+      sqlErrorType: SqlErrorTypeEnum.emptySql,
       message: 'Query cannot be empty.',
+      uiMessages: 'Query cannot be empty.',
       validateResults: [],
     };
   }
-
   try {
-    const { sqlDataList, fullAst, fullTableList } = parseSql(sql);
-    if (Array.isArray(fullAst) && fullAst.length > 1) {
+    const { sqlDataList, fullAst, fullTableList, fullColumnList } = parseSql({
+      sql,
+    });
+
+    if (Array.isArray(fullAst) && fullAst.length > maxSqlNum) {
       return {
-        type: SqlTypeEnum.multiSql,
-        message:
-          'System only supports single query, please edit your query and retry.',
+        sqlParseResult: {
+          fullAst,
+          fullTableList,
+          fullColumnList,
+          sqlDataList,
+        },
+        sqlErrorType: SqlErrorTypeEnum.multiSql,
+        uiMessages: `System only supports maxSqlNum query is ${maxSqlNum}, please edit your query and retry.`,
+        message: `System only supports maxSqlNum query is ${maxSqlNum}, please edit your query and retry.`,
         validateResults: [],
       };
     }
+
     const validateResults = SqlValidator.validateAst({
       extractedAstList: sqlDataList[0].extractedAstList,
       originTableList: fullTableList,
-      validators:
-        validateType === ValidateSqlType.read
-          ? READABLE_QUERY_VALIDATORS
-          : WRITABLE_QUERY_VALIDATORS,
+      validators,
     });
 
     if (validateResults.length) {
       return {
-        type: SqlTypeEnum.validateError,
+        sqlParseResult: {
+          fullAst,
+          sqlDataList,
+          fullTableList,
+          fullColumnList,
+        },
+        sqlErrorType: SqlErrorTypeEnum.validateError,
         validateResults,
         message: 'Invalid query.',
+        uiMessages: 'Invalid query.',
       };
     }
 
     return {
-      type: SqlTypeEnum.noError,
+      sqlParseResult: {
+        fullAst,
+        sqlDataList,
+        fullTableList,
+        fullColumnList,
+      },
+      sqlErrorType: SqlErrorTypeEnum.noError,
       validateResults: [],
       message: 'success',
+      uiMessages: 'success',
     };
   } catch (error) {
     return {
-      type: SqlTypeEnum.syntaxError,
+      sqlParseResult: null,
+      sqlErrorType: SqlErrorTypeEnum.syntaxError,
       message: String(error.toString()),
       validateResults: [],
+      uiMessages: String(error.toString()),
     };
   }
 };
 
-export function validateSqlWithUI({
-  sql,
-  validateType,
-  onValidate,
+export const validateSql = ({
+  sql = '',
+  validators = [],
+  maxSqlNum = 1,
 }: {
   sql: string;
-  validateType: ValidateSqlType;
-  onValidate: (data: string | string[]) => void;
-}) {
-  const validateResult = validateSql(sql, validateType);
+  validators: ValidatorConfig[];
+  maxSqlNum?: number;
+}) => {
+  const validateResult = __validateSql({ sql, validators, maxSqlNum });
   let errorValidateResults: ValidateResult[] = [];
   let warnValidateResults: ValidateResult[] = [];
+  let uiMessages: string | string[];
 
-  if (validateResult.type === SqlTypeEnum.syntaxError) {
-    onValidate('Grammer error, please edit and retry.');
-  } else if (validateResult.type === SqlTypeEnum.multiSql) {
-    onValidate(validateResult.message);
-  } else if (validateResult.type === SqlTypeEnum.validateError) {
+  if (validateResult.sqlErrorType === SqlErrorTypeEnum.syntaxError) {
+    uiMessages = 'Grammer error, please edit and retry.';
+  } else if (validateResult.sqlErrorType === SqlErrorTypeEnum.multiSql) {
+    uiMessages = validateResult.message;
+  } else if (validateResult.sqlErrorType === SqlErrorTypeEnum.validateError) {
     errorValidateResults = validateResult.validateResults.filter(
       result => result.level === 'error',
     );
@@ -85,19 +112,20 @@ export function validateSqlWithUI({
     );
     if (errorValidateResults.length) {
       const messages = errorValidateResults.map(result => result.message);
-      onValidate(messages);
+      uiMessages = messages;
     } else if (warnValidateResults.length) {
       const messages = warnValidateResults.map(result => result.message);
-      onValidate(messages);
+      uiMessages = messages;
     } else {
-      onValidate(validateResult.message);
+      uiMessages = validateResult.message;
     }
   } else {
-    onValidate(validateResult.message);
+    uiMessages = validateResult.message;
   }
 
   return {
     ...validateResult,
     errorValidateResults,
+    uiMessages,
   };
-}
+};

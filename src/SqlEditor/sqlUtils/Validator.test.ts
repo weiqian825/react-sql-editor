@@ -1,5 +1,6 @@
 import { parseSql } from './parser';
-import Validator, { ValidateResult, ValidatorConfig } from './Validator';
+import { ValidateResult, ValidatorConfig } from './type';
+import Validator from './Validator';
 
 describe('utils/sqlUtils/Validator/validators/notForbiddenFunc', () => {
   test('notForbiddenFunc', () => {
@@ -13,7 +14,7 @@ describe('utils/sqlUtils/Validator/validators/notForbiddenFunc', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList } = parseSql(sql);
+      const { sqlDataList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.notForbiddenFunc({ extractedAstList });
       expect(value).toMatchObject({
@@ -40,7 +41,7 @@ describe('utils/sqlUtils/Validator/validators/notOrderBy', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList } = parseSql(sql);
+      const { sqlDataList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.notOrderBy({ extractedAstList });
       expect(value).toMatchObject({
@@ -67,7 +68,7 @@ describe('utils/sqlUtils/Validator/validators/notGroupBy', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList } = parseSql(sql);
+      const { sqlDataList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.notGroupBy({ extractedAstList });
       expect(value).toMatchObject({
@@ -94,7 +95,7 @@ describe('utils/sqlUtils/Validator/validators/notHaving', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList } = parseSql(sql);
+      const { sqlDataList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.notHaving({ extractedAstList });
       expect(value).toMatchObject({
@@ -121,7 +122,7 @@ describe('utils/sqlUtils/Validator/validators/limitForAllSelectQuery', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList } = parseSql(sql);
+      const { sqlDataList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.limitForAllSelectQuery({
         extractedAstList,
@@ -158,7 +159,7 @@ describe('utils/sqlUtils/Validator/validators/limitNumForAllSelectQuery', () => 
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList } = parseSql(sql);
+      const { sqlDataList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.limitNumForAllSelectQuery({
         extractedAstList,
@@ -204,7 +205,7 @@ describe('utils/sqlUtils/Validator/validators/hasWhereForTypesInNeed', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList } = parseSql(sql);
+      const { sqlDataList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.hasWhereForTypesInNeed({
         extractedAstList,
@@ -252,7 +253,7 @@ describe('utils/sqlUtils/Validator/validators/isSystemSupportType', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList, fullTableList } = parseSql(sql);
+      const { sqlDataList, fullTableList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.isSystemSupportType({
         extractedAstList,
@@ -309,7 +310,7 @@ describe('utils/sqlUtils/Validator/validators/isReadableSqlType', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList, fullTableList } = parseSql(sql);
+      const { sqlDataList, fullTableList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.isReadableSqlType({
         extractedAstList,
@@ -359,7 +360,7 @@ describe('utils/sqlUtils/Validator/validators/isWritableSqlType', () => {
         sql: string;
         expected: boolean;
       };
-      const { sqlDataList, fullTableList } = parseSql(sql);
+      const { sqlDataList, fullTableList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validators.isWritableSqlType({
         extractedAstList,
@@ -443,7 +444,7 @@ describe('utils/sqlUtils/Validator/validators/validateAst', () => {
         validators: ValidatorConfig[];
         expected: ValidateResult[];
       };
-      const { sqlDataList, fullTableList } = parseSql(sql);
+      const { sqlDataList, fullTableList } = parseSql({ sql });
       const extractedAstList = sqlDataList[0].extractedAstList;
       const value = Validator.validateAst({
         extractedAstList,

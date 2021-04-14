@@ -6,13 +6,25 @@ nav:
 
 ## SqlEditor
 
-Demo:
+Simple SQL Editor Demo:
 
 ```tsx
 import React from 'react';
-import SqlEditor from 'react-sql-editor';
+import SqlEditor, { READ_VALIDATORS } from 'react-sql-editor';
 
-export default () => <SqlEditor title="Sql Editor" />;
+export default () => (
+  <SqlEditor
+    title="Sql Editor"
+    width="auto"
+    height="300px"
+    isShowHeader={true}
+    handleChange={data => {
+      console.log(data);
+    }}
+    validatorConfig={{
+      maxSqlNum: 1,
+      validators: READ_VALIDATORS,
+    }}
+  />
+);
 ```
-
-More skills for writing demo: https://d.umijs.org/guide/demo-principle

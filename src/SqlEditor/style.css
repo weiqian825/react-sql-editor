@@ -1,8 +1,3 @@
-.sqleditor {
-  margin: 100px;
-  border: 1px solid #3883fa;
-}
-
 .sqleditor-menu {
   width: 100%;
   height: 35px;
@@ -66,10 +61,6 @@
   font-family: arial, sans-serif;
   font-size: 10pt;
 }
-.error-marker {
-  position: absolute;
-}
-
 .sqleditor-delete {
   width: 20px;
   height: 20px;

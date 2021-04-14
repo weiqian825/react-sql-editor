@@ -1,36 +1,26 @@
-import {
-  ASTType,
-  READABLE_QUERY_VALIDATORS,
-  ValidateSqlType,
-  WRITABLE_QUERY_VALIDATORS,
-} from './sql';
 import { AST, Delete, Select, Update } from 'node-sql-parser';
 import {
-  NEED_WHERE_AST_TYPE,
   VALID_AST_TYPE,
+  NEED_WHERE_AST_TYPE,
   FORBIDDEN_FUNCTIONS,
   READABLE_AST_TYPE,
   WRITABLE_AST_TYPE,
 } from './constant';
-
-interface ValidatorFuncProps {
-  extractedAstList?: AST[];
-  originTableList?: string[];
-}
-export type Level = 'warn' | 'error' | 'pass';
-export type ValidatorFunc = ({
-  extractedAstList,
-}: ValidatorFuncProps) => { validateResult: boolean; invalidMessage: string }; // Return: false(warn or error)； true(pass)
-export interface ValidatorConfig {
-  validate: ValidatorFunc;
-  level?: Level; // default: warn
-}
+import {
+  ValidateAstParams,
+  ValidateResult,
+  ValidatorFunc,
+  ValidatorFuncProps,
+} from './type';
 
 /**
  * 不允许使用 ORDER BY
  * @param extractedAstList
  */
-const notOrderBy: ValidatorFunc = ({ extractedAstList }) => {
+const notOrderBy: ValidatorFunc = ({
+  extractedAstList,
+  invalidMessage = 'Your query have ORDER BY clause.',
+}) => {
   const validateResult = !extractedAstList?.some(ast => {
     if (ast.type === 'select') {
       return Boolean(ast.orderby);
@@ -39,7 +29,7 @@ const notOrderBy: ValidatorFunc = ({ extractedAstList }) => {
   });
   return {
     validateResult,
-    invalidMessage: 'Your query have ORDER BY clause.',
+    invalidMessage: invalidMessage,
   };
 };
 
@@ -47,7 +37,10 @@ const notOrderBy: ValidatorFunc = ({ extractedAstList }) => {
  * 不允许使用 GROUP BY
  * @param extractedAstList
  */
-const notGroupBy: ValidatorFunc = ({ extractedAstList }) => {
+const notGroupBy: ValidatorFunc = ({
+  extractedAstList,
+  invalidMessage = 'Your query have GROUP BY clause.',
+}) => {
   const validateResult = !extractedAstList?.some(ast => {
     if (ast.type === 'select') {
       return Boolean(ast.groupby);
@@ -56,7 +49,7 @@ const notGroupBy: ValidatorFunc = ({ extractedAstList }) => {
   });
   return {
     validateResult,
-    invalidMessage: 'Your query have GROUP BY clause.',
+    invalidMessage,
   };
 };
 
@@ -64,7 +57,10 @@ const notGroupBy: ValidatorFunc = ({ extractedAstList }) => {
  * 不允许使用 HAVING
  * @param extractedAstList
  */
-const notHaving: ValidatorFunc = ({ extractedAstList }) => {
+const notHaving: ValidatorFunc = ({
+  extractedAstList,
+  invalidMessage = 'Your query have HAVING clause.',
+}) => {
   const validateResult = !extractedAstList?.some(ast => {
     if (ast.type === 'select') {
       return Boolean(ast.having);
@@ -73,7 +69,7 @@ const notHaving: ValidatorFunc = ({ extractedAstList }) => {
   });
   return {
     validateResult,
-    invalidMessage: 'Your query have HAVING clause.',
+    invalidMessage,
   };
 };
 
@@ -81,7 +77,10 @@ const notHaving: ValidatorFunc = ({ extractedAstList }) => {
  * 所有的 SELECT 查询都要加上 LIMIT 限制
  * @param extractedAstList
  */
-const limitForAllSelectQuery: ValidatorFunc = ({ extractedAstList }) => {
+const limitForAllSelectQuery: ValidatorFunc = ({
+  extractedAstList,
+  invalidMessage = 'Your query should have LIMIT clause.',
+}) => {
   const validateResult = !!extractedAstList?.every(ast => {
     if (ast.type === 'select') {
       return Boolean(ast.limit);
@@ -91,7 +90,7 @@ const limitForAllSelectQuery: ValidatorFunc = ({ extractedAstList }) => {
   });
   return {
     validateResult,
-    invalidMessage: 'Your query should have LIMIT clause.',
+    invalidMessage,
   };
 };
 
@@ -99,7 +98,10 @@ const limitForAllSelectQuery: ValidatorFunc = ({ extractedAstList }) => {
  * 所有的 SELECT 查询的 LIMIT 语句都要限制在 100 以内(包括100)
  * @param extractedAstList
  */
-const limitNumForAllSelectQuery: ValidatorFunc = ({ extractedAstList }) => {
+const limitNumForAllSelectQuery: ValidatorFunc = ({
+  extractedAstList,
+  invalidMessage = 'Your select query should have a LIMIT no more than 100.',
+}) => {
   const validateResult = !!extractedAstList?.every(ast => {
     if (ast.type === 'select') {
       if (!ast.limit) return false;
@@ -114,7 +116,7 @@ const limitNumForAllSelectQuery: ValidatorFunc = ({ extractedAstList }) => {
   });
   return {
     validateResult,
-    invalidMessage: 'Your select query should have a LIMIT no more than 100.',
+    invalidMessage,
   };
 };
 
@@ -122,7 +124,10 @@ const limitNumForAllSelectQuery: ValidatorFunc = ({ extractedAstList }) => {
  * 需要加上 WHERE 字段的 SQL 语句都要加上 WHERE 字段
  * @param extractedAstList
  */
-const hasWhereForTypesInNeed: ValidatorFunc = ({ extractedAstList }) => {
+const hasWhereForTypesInNeed: ValidatorFunc = ({
+  extractedAstList,
+  invalidMessage = 'Your query should have WHERE clause.',
+}) => {
   const validateResult = !!extractedAstList?.every(ast => {
     if (NEED_WHERE_AST_TYPE.includes(ast.type)) {
       return Boolean((ast as Select | Delete | Update).where);
@@ -132,7 +137,7 @@ const hasWhereForTypesInNeed: ValidatorFunc = ({ extractedAstList }) => {
   });
   return {
     validateResult,
-    invalidMessage: 'Your query should have WHERE clause.',
+    invalidMessage: invalidMessage,
   };
 };
 
@@ -140,7 +145,10 @@ const hasWhereForTypesInNeed: ValidatorFunc = ({ extractedAstList }) => {
  * 不能有被禁止的方法
  * @param extractedAstList
  */
-const notForbiddenFunc: ValidatorFunc = ({ extractedAstList }) => {
+const notForbiddenFunc: ValidatorFunc = ({
+  extractedAstList,
+  invalidMessage = 'Your query should not contain BENCHMARK.',
+}) => {
   const validateResult = !!extractedAstList?.every(ast => {
     const { columns } = ast as Select;
     if (Array.isArray(columns)) {
@@ -158,17 +166,17 @@ const notForbiddenFunc: ValidatorFunc = ({ extractedAstList }) => {
   });
   return {
     validateResult,
-    invalidMessage: 'Your query should not contain BENCHMARK.',
+    invalidMessage,
   };
 };
 
 const __isTypes = (
   { extractedAstList, originTableList }: ValidatorFuncProps,
-  types: ASTType[],
+  types: AST['type'][],
 ) => {
   const isTableListValid = !!originTableList
     ?.map(tableElement => tableElement.split('::')[0].toLowerCase())
-    .every(tableType => types.includes(tableType as ASTType));
+    .every(tableType => types.includes(tableType as AST['type']));
 
   const isExtractedAstListValid = !!extractedAstList?.every(ast => {
     return types.includes(ast.type);
@@ -185,13 +193,14 @@ const __isTypes = (
 const isSystemSupportType: ValidatorFunc = ({
   extractedAstList,
   originTableList,
+  invalidMessage = 'This SQL query type is not yet supported.',
 }) => {
   return {
     validateResult: __isTypes(
       { extractedAstList, originTableList },
       VALID_AST_TYPE,
     ),
-    invalidMessage: 'This SQL query type is not yet supported.',
+    invalidMessage,
   };
 };
 
@@ -203,13 +212,14 @@ const isSystemSupportType: ValidatorFunc = ({
 const isReadableSqlType: ValidatorFunc = ({
   extractedAstList,
   originTableList,
+  invalidMessage = 'This is not a readonly SQL query type.',
 }) => {
   return {
     validateResult: __isTypes(
       { extractedAstList, originTableList },
       READABLE_AST_TYPE,
     ),
-    invalidMessage: 'This is not a readonly SQL query type.',
+    invalidMessage,
   };
 };
 
@@ -221,26 +231,16 @@ const isReadableSqlType: ValidatorFunc = ({
 const isWritableSqlType: ValidatorFunc = ({
   extractedAstList,
   originTableList,
+  invalidMessage = 'This is not a writable SQL query type.',
 }) => {
   return {
     validateResult: __isTypes(
       { extractedAstList, originTableList },
       WRITABLE_AST_TYPE,
     ),
-    invalidMessage: 'This is not a writable SQL query type.',
+    invalidMessage,
   };
 };
-
-export interface ValidateResult {
-  validatorName: string;
-  level: Level;
-  result: boolean;
-  message: string;
-}
-
-interface ValidateAstParams extends ValidatorFuncProps {
-  validators: ValidatorConfig[];
-}
 
 const validateAst = ({
   validators,
@@ -253,8 +253,10 @@ const validateAst = ({
     const validateResult = validator.validate({
       extractedAstList,
       originTableList,
+      invalidMessage: validator.invalidMessage,
     });
     const isValid = validateResult.validateResult;
+
     if (!isValid) {
       validateResults.push({
         validatorName: validator.validate.name,
@@ -267,14 +269,6 @@ const validateAst = ({
 
   return validateResults;
 };
-
-export enum SqlTypeEnum {
-  syntaxError,
-  multiSql,
-  validateError,
-  noError,
-  emptySql,
-}
 
 export default {
   validators: {

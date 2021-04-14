@@ -86,7 +86,7 @@ describe('utils/sqlUtils/parser', () => {
           firstExtractedAstLength: number;
         };
       };
-      const { fullAst, fullTableList, sqlDataList } = parseSql(sql);
+      const { fullAst, fullTableList, sqlDataList } = parseSql({ sql });
 
       const expectedFullAst = sqlParser.astify(sql);
       const expectedFullTableList = sqlParser.tableList(sql);

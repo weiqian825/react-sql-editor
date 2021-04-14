@@ -1,6 +1,6 @@
-import { ASTType } from './sql';
+import { AST } from 'node-sql-parser';
 
-export const ALL_AST_TYPE: ASTType[] = [
+export const ALL_AST_TYPE: AST['type'][] = [
   'use',
   'select',
   'replace',
@@ -9,7 +9,8 @@ export const ALL_AST_TYPE: ASTType[] = [
   'delete',
   'alter',
 ];
-export const VALID_AST_TYPE: ASTType[] = [
+
+export const VALID_AST_TYPE: AST['type'][] = [
   'use',
   'select',
   'replace',
@@ -17,9 +18,10 @@ export const VALID_AST_TYPE: ASTType[] = [
   'update',
   'delete',
 ]; // 本系统支持的 SQL 语句类型
-export const NEED_WHERE_AST_TYPE: ASTType[] = ['update', 'delete']; // 本系统需要带 where 条件的 SQL 语句类型
-export const READABLE_AST_TYPE: ASTType[] = ['use', 'select']; // 支持只读权限的 SQL 语句类型
-export const WRITABLE_AST_TYPE: ASTType[] = [
+
+export const NEED_WHERE_AST_TYPE: AST['type'][] = ['update', 'delete']; // 本系统需要带 where 条件的 SQL 语句类型
+export const READABLE_AST_TYPE: AST['type'][] = ['use', 'select']; // 支持只读权限的 SQL 语句类型
+export const WRITABLE_AST_TYPE: AST['type'][] = [
   'use',
   'select',
   'replace',

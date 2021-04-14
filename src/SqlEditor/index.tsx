@@ -1,22 +1,22 @@
 import React, { useCallback, useRef, useState } from 'react';
 import AceEditor, { IAceEditorProps, IEditorProps } from 'react-ace';
 import { format } from 'sql-formatter';
-import 'ace-builds/src-noconflict/theme-tomorrow';
+import ReactAce from 'react-ace/lib/ace';
 import 'ace-builds/src-min-noconflict/ext-searchbox';
 import 'ace-builds/src-min-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/mode-mysql';
 import 'ace-builds/src-min-noconflict/snippets/mysql';
+import { validateSql } from './sqlUtils/helper';
+import { ValidateSqlResult, ValidatorConfig } from './sqlUtils/type';
+import { SqlErrorTypeEnum } from './sqlUtils/enum';
 import styles from './style.css';
-import { SqlTypeEnum } from './sqlUtils/Validator';
-import { validateSqlWithUI } from './sqlUtils/helper';
-import { ValidateSqlType } from './sqlUtils/sql';
-import ReactAce from 'react-ace/lib/ace';
+import { READ_VALIDATORS } from './sqlUtils/sql';
 
 export default ({
-  inputSql = '',
+  defaultValue = '',
+  className,
   placeholder = 'please input sql here',
   mode = 'mysql',
-  theme = 'tomorrow',
   name = 'sql editor',
   width = '100%',
   height = '250px',
@@ -33,14 +33,31 @@ export default ({
     tabSize: 2,
   },
   readOnly = false,
-  onSqlValidate = (data: unknown) => {
-    window.alert(data);
+  handleChange = data => {
+    console.log(data);
   },
+  handleFormat = data => {
+    console.log(data);
+  },
+  isShowHeader = false,
+  validatorConfig = {
+    maxSqlNum: 1,
+    validators: READ_VALIDATORS,
+  },
+  ...props
 }: IAceEditorProps & {
-  inputSql: string;
-  onSqlValidate: (data: unknown) => void;
+  isShowHeader: boolean;
+  handleChange: (data: {
+    validateSqlResult: ValidateSqlResult;
+    isSqlValid: boolean;
+  }) => void;
+  handleFormat: (data: {
+    validateSqlResult: ValidateSqlResult;
+    isSqlValid: boolean;
+  }) => void;
+  validatorConfig: { maxSqlNum: number; validators: ValidatorConfig[] };
 }) => {
-  const [displaySql, setDisplaySql] = useState<string>(inputSql);
+  const [displaySql, setDisplaySql] = useState<string>(defaultValue);
   const [copyTips, setCopyTips] = useState<string>('');
   const [annotations, setAnnotations] = useState<
     IAceEditorProps['annotations']
@@ -52,49 +69,46 @@ export default ({
     editor.getSelection().on('changeSelection', () => {});
   }, []);
 
-  const onChange = (val: string) => {
-    setDisplaySql(val);
-    validateSqlWithUI({
-      onValidate: (text: string | string[]) => {
-        if (text === 'success') {
-          setAnnotations([]);
-        } else {
-          setAnnotations([
-            {
-              row: 0,
-              column: 1,
-              text: String(text),
-              type: 'error',
-            },
-          ]);
-        }
-      },
-      sql: val,
-      validateType: ValidateSqlType.read,
+  const getValidateSql = (
+    val = '',
+  ): { validateSqlResult: ValidateSqlResult; isSqlValid: boolean } => {
+    const curVal = val || displaySql;
+    const validateSqlResult = validateSql({
+      sql: curVal,
+      validators: validatorConfig.validators,
     });
+
+    return {
+      validateSqlResult: validateSqlResult,
+      isSqlValid: validateSqlResult.sqlErrorType === SqlErrorTypeEnum.noError,
+    };
   };
 
-  const isSqlValidate = (val = '') => {
-    const curVal = val || displaySql;
-    const validateResult = validateSqlWithUI({
-      onValidate: (res: unknown) => {
-        onSqlValidate(res);
-      },
-      sql: curVal,
-      validateType: ValidateSqlType.read,
-    });
-    return validateResult.type === SqlTypeEnum.noError;
+  const onChange = (val: string) => {
+    setDisplaySql(val);
+    const result = getValidateSql(val);
+    handleChange(result);
+    if (result.validateSqlResult.message === 'success') setAnnotations([]);
+    else
+      setAnnotations([
+        {
+          row: 0,
+          column: 1,
+          text: String(result.validateSqlResult.uiMessages),
+          type: 'error',
+        },
+      ]);
+    return result;
   };
 
   const formatSql = (val = '') => {
     const curVal = val || displaySql;
-    const isSqlValid = isSqlValidate(curVal);
-
-    if (isSqlValid) {
+    const result = getValidateSql(curVal);
+    if (result.isSqlValid) {
       const formatResult = format(curVal);
       setDisplaySql(formatResult);
-      return;
     }
+    handleFormat(result);
   };
 
   const onDelete = () => {
@@ -115,42 +129,37 @@ export default ({
   };
 
   return (
-    <div className={styles['sqleditor']}>
-      <div className={styles['sqleditor-menu']}>
-        <div className={styles['menu-left']}>
-          <div
-            title="format"
-            className={styles['sqleditor-format']}
-            onClick={() => {
-              formatSql();
-            }}
-          />
+    <div className={className}>
+      {isShowHeader ? (
+        <div className={styles['sqleditor-menu']}>
+          <div className={styles['menu-left']}>
+            <div
+              title="format"
+              className={styles['sqleditor-format']}
+              onClick={() => {
+                formatSql();
+              }}
+            />
+          </div>
+          <div className={styles['menu-right']}>
+            <div
+              title={copyTips || 'copy'}
+              onClick={copyToClipboard}
+              className={styles['sqleditor-copy']}
+            />
+            <div
+              className={styles['sqleditor-delete']}
+              title="delete"
+              onClick={onDelete}
+            />
+          </div>
         </div>
-        <div className={styles['menu-right']}>
-          <div
-            title="compelete"
-            className={styles['sqleditor-compelete']}
-            onClick={() => {
-              isSqlValidate();
-            }}
-          />
-          <div
-            title={copyTips || 'copy'}
-            onClick={copyToClipboard}
-            className={styles['sqleditor-copy']}
-          />
-          <div
-            className={styles['sqleditor-delete']}
-            title="delete"
-            onClick={onDelete}
-          />
-        </div>
-      </div>
+      ) : null}
+
       <AceEditor
         ref={aceEditorRef}
         annotations={annotations}
         mode={mode}
-        theme={theme}
         name={name}
         width={width}
         height={height}
@@ -167,6 +176,7 @@ export default ({
         highlightActiveLine={highlightActiveLine}
         enableBasicAutocompletion={enableBasicAutocompletion}
         enableLiveAutocompletion={enableLiveAutocompletion}
+        {...props}
         commands={[
           {
             name: 'enterSubmitSql',
