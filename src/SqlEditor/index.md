@@ -18,7 +18,7 @@ export default () => (
     width="auto"
     height="300px"
     isShowHeader={true}
-    handleChange={data => {
+    onChange={data => {
       console.log(data);
     }}
     validatorConfig={{

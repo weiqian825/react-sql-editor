@@ -1,0 +1,9 @@
+{
+  "restartable": "rs",
+  "verbose": true,
+  "watch": ["docs/", "src/"],
+  "ignore": ["dist/", "node_modules/"],
+  "delay": "1000",
+  "exec": "make push",
+  "ext": "ts ejs yml json tsx css"
+}

@@ -24,7 +24,7 @@ export default () => (
     width="auto"
     height="300px"
     isShowHeader={true}
-    handleChange={data => {
+    onChange={data => {
       console.log(data);
     }}
     validatorConfig={{
@@ -39,7 +39,7 @@ export default () => (
 
 | Prop            | Default           | Type     | Description             |
 | --------------- | ----------------- | -------- | ----------------------- |
-| handleChange    | console.log(data) | Function | handleChange            |
+| onChange        | console.log(data) | Function | onChange                |
 | isShowHeader    | false             | Boolean  | Show SQL Editor Header  |
 | validatorConfig |                   | Object   | SQL Validator rule Conf |
 

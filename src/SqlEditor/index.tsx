@@ -33,10 +33,10 @@ export default ({
     tabSize: 2,
   },
   readOnly = false,
-  handleChange = data => {
+  onChange = (data: any) => {
     console.log(data);
   },
-  handleFormat = data => {
+  onFormat = (data: any) => {
     console.log(data);
   },
   isShowHeader = false,
@@ -47,11 +47,11 @@ export default ({
   ...props
 }: IAceEditorProps & {
   isShowHeader: boolean;
-  handleChange: (data: {
+  onChange: (data: {
     validateSqlResult: ValidateSqlResult;
     isSqlValid: boolean;
   }) => void;
-  handleFormat: (data: {
+  onFormat: (data: {
     validateSqlResult: ValidateSqlResult;
     isSqlValid: boolean;
   }) => void;
@@ -84,10 +84,10 @@ export default ({
     };
   };
 
-  const onChange = (val: string) => {
+  const handleChange = (val: string) => {
     setDisplaySql(val);
     const result = getValidateSql(val);
-    handleChange(result);
+    onChange(result);
     if (result.validateSqlResult.message === 'success') setAnnotations([]);
     else
       setAnnotations([
@@ -101,6 +101,8 @@ export default ({
     return result;
   };
 
+  console.log('weiqian1111');
+
   const formatSql = (val = '') => {
     const curVal = val || displaySql;
     const result = getValidateSql(curVal);
@@ -108,7 +110,7 @@ export default ({
       const formatResult = format(curVal);
       setDisplaySql(formatResult);
     }
-    handleFormat(result);
+    onFormat(result);
   };
 
   const onDelete = () => {
@@ -165,7 +167,7 @@ export default ({
         height={height}
         value={displaySql}
         onLoad={onLoad}
-        onChange={onChange}
+        onChange={handleChange}
         readOnly={readOnly}
         fontSize={fontSize}
         showGutter={showGutter}
