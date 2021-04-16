@@ -1,6 +1,6 @@
 import { parseSql } from './parser';
 import SqlValidator from './Validator';
-import { ValidateResult, ValidateSqlResult, ValidatorConfig } from './type';
+import { ValidateResult, ValidateSqlResult, ValidatorConfig } from '../../type';
 import { SqlErrorTypeEnum } from './enum';
 
 const __validateSql = ({

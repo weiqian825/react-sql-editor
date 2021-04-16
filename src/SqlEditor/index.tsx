@@ -7,7 +7,7 @@ import 'ace-builds/src-min-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/mode-mysql';
 import 'ace-builds/src-min-noconflict/snippets/mysql';
 import { validateSql } from './sqlUtils/helper';
-import { ValidateSqlResult, ValidatorConfig } from './sqlUtils/type';
+import { OnChangeRspData, ValidateSqlResult, ValidatorConfig } from '../type';
 import { SqlErrorTypeEnum } from './sqlUtils/enum';
 import styles from './style.css';
 import { READ_VALIDATORS } from './sqlUtils/sql';
@@ -34,10 +34,10 @@ export default ({
   },
   readOnly = false,
   onChange = (data: any) => {
-    console.log(data);
+    console.log(`onChange: ${JSON.stringify(data)}`);
   },
   onFormat = (data: any) => {
-    console.log(data);
+    console.log(`onChange: ${JSON.stringify(data)}`);
   },
   isShowHeader = false,
   validatorConfig = {
@@ -47,10 +47,7 @@ export default ({
   ...props
 }: IAceEditorProps & {
   isShowHeader: boolean;
-  onChange: (data: {
-    validateSqlResult: ValidateSqlResult;
-    isSqlValid: boolean;
-  }) => void;
+  onChange: (data: any) => void;
   onFormat: (data: {
     validateSqlResult: ValidateSqlResult;
     isSqlValid: boolean;
@@ -69,22 +66,23 @@ export default ({
     editor.getSelection().on('changeSelection', () => {});
   }, []);
 
-  const getValidateSql = (
-    val = '',
-  ): { validateSqlResult: ValidateSqlResult; isSqlValid: boolean } => {
-    const curVal = val || displaySql;
+  const getValidateSql = (value = ''): OnChangeRspData => {
+    const curVal = value || displaySql;
+    console.log(1);
     const validateSqlResult = validateSql({
       sql: curVal,
       validators: validatorConfig.validators,
     });
-
+    const isSqlValid =
+      validateSqlResult.sqlErrorType === SqlErrorTypeEnum.noError;
     return {
-      validateSqlResult: validateSqlResult,
-      isSqlValid: validateSqlResult.sqlErrorType === SqlErrorTypeEnum.noError,
+      value,
+      isSqlValid,
+      validateSqlResult,
     };
   };
 
-  const handleChange = (val: string) => {
+  const handleChange = async (val: string) => {
     setDisplaySql(val);
     const result = getValidateSql(val);
     onChange(result);
@@ -100,8 +98,6 @@ export default ({
       ]);
     return result;
   };
-
-  console.log('weiqian1111');
 
   const formatSql = (val = '') => {
     const curVal = val || displaySql;

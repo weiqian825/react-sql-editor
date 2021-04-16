@@ -1,4 +1,4 @@
-import { ValidatorConfig } from './type';
+import { ValidatorConfig } from '../../type';
 import SqlValidator from './Validator';
 
 export const SQL_VALIDATORS: { [key: string]: ValidatorConfig } = {

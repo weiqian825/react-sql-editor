@@ -1,5 +1,5 @@
 import { parseSql } from './parser';
-import { ValidateResult, ValidatorConfig } from './type';
+import { ValidateResult, ValidatorConfig } from '../../type';
 import Validator from './Validator';
 
 describe('utils/sqlUtils/Validator/validators/notForbiddenFunc', () => {

@@ -11,7 +11,7 @@ import {
   ValidateResult,
   ValidatorFunc,
   ValidatorFuncProps,
-} from './type';
+} from '../../type';
 
 /**
  * 不允许使用 ORDER BY

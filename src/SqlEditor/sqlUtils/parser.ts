@@ -1,6 +1,6 @@
 import { AST, Parser } from 'node-sql-parser';
 import { ALL_AST_TYPE } from './constant';
-import { SqlParseResult } from './type';
+import { SqlParseResult } from '../../type';
 
 const sqlParser = new Parser();
 

@@ -1,5 +1,5 @@
 import { AST } from 'node-sql-parser';
-import { SqlErrorTypeEnum } from './enum';
+import { SqlErrorTypeEnum } from './SqlEditor/sqlUtils/enum';
 
 export interface ValidateResult {
   validatorName: string;
@@ -10,9 +10,15 @@ export interface ValidateResult {
 export interface ValidateSqlResult {
   message: string;
   uiMessages: string | string[];
-  sqlParseResult: SqlParseResult | null;
   sqlErrorType: SqlErrorTypeEnum;
+  sqlParseResult: SqlParseResult | null;
   validateResults: ValidateResult[];
+}
+
+export interface OnChangeRspData {
+  value: string;
+  isSqlValid: boolean;
+  validateSqlResult: ValidateSqlResult;
 }
 export interface ValidateAstParams extends ValidatorFuncProps {
   validators: ValidatorConfig[];
