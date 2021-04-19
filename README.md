@@ -27,6 +27,9 @@ export default () => (
     onChange={data => {
       console.log(data);
     }}
+    onFormat={data => {
+      console.log(data);
+    }}
     validatorConfig={{
       maxSqlNum: 1,
       validators: READ_VALIDATORS,
@@ -37,11 +40,19 @@ export default () => (
 
 ## Primary Available Props
 
-| Prop            | Default           | Type     | Description             |
-| --------------- | ----------------- | -------- | ----------------------- |
-| onChange        | console.log(data) | Function | onChange                |
-| isShowHeader    | false             | Boolean  | Show SQL Editor Header  |
-| validatorConfig |                   | Object   | SQL Validator rule Conf |
+| Prop            | Default           | Type     | Description               |
+| --------------- | ----------------- | -------- | ------------------------- |
+| onChange        | console.log(data) | Function | onChange                  |
+| onFormat        | console.log(data) | Function | onFormat                  |
+| isShowHeader    | false             | Boolean  | Show SQL Editor Header    |
+| validatorConfig |                   | Object   | SQL Validator rule Config |
+
+## Primary export util
+
+| Prop           | Default           | Type     | Description    |
+| -------------- | ----------------- | -------- | -------------- |
+| formatSql      | console.log(data) | Function | formatSql      |
+| getValidateSql | console.log(data) | Function | getValidateSql |
 
 ## validatorConfig Options
 

@@ -21,6 +21,9 @@ export default () => (
     onChange={data => {
       console.log(data);
     }}
+    onFormat={data => {
+      console.log(data);
+    }}
     validatorConfig={{
       maxSqlNum: 1,
       validators: READ_VALIDATORS,

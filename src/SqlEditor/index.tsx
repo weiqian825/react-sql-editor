@@ -7,12 +7,78 @@ import 'ace-builds/src-min-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/mode-mysql';
 import 'ace-builds/src-min-noconflict/snippets/mysql';
 import { validateSql } from './sqlUtils/helper';
-import { OnChangeRspData, ValidateSqlResult, ValidatorConfig } from '../type';
-import { SqlErrorTypeEnum } from './sqlUtils/enum';
-import styles from './style.css';
+import { SqlChangedCallbackData, ValidatorConfig } from '../type';
 import { READ_VALIDATORS } from './sqlUtils/sql';
+import { SqlErrorTypeEnum } from '..';
+import styles from './style.css';
 
-export default ({
+export const getValidateSql = ({
+  value = '',
+  validatorConfig = {
+    maxSqlNum: 1,
+    validators: READ_VALIDATORS,
+  },
+  callback = (data: any) => {
+    console.log(data);
+  },
+}): SqlChangedCallbackData => {
+  const validateSqlResult = validateSql({
+    sql: value,
+    validators: validatorConfig.validators,
+  });
+  const result = {
+    value,
+    validateSqlResult,
+    isSqlValid: validateSqlResult.sqlErrorType === SqlErrorTypeEnum.noError,
+  };
+  callback(result);
+  return result;
+};
+
+export const formatSql = ({
+  value = '',
+  validatorConfig = {
+    maxSqlNum: 1,
+    validators: READ_VALIDATORS,
+  },
+  callback = (data: any) => {
+    console.log(data);
+  },
+}) => {
+  const formatValue = format(value);
+  const validateSqlResult = getValidateSql({
+    value: formatValue,
+    callback,
+    validatorConfig,
+  });
+  const result = {
+    validateSqlResult,
+    formatValue,
+    value,
+  };
+  return result;
+};
+
+export const copyToClipboard = ({
+  value,
+  callback,
+}: {
+  value: string;
+  callback: Function;
+}) => {
+  const el = document.createElement('textarea');
+  el.value = value;
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
+  callback('Copied');
+  setTimeout(() => {
+    callback('');
+  }, 2000);
+};
+
+export const SqlEditor = ({
   defaultValue = '',
   className,
   placeholder = 'please input sql here',
@@ -32,26 +98,19 @@ export default ({
     showLineNumbers: true,
     tabSize: 2,
   },
-  readOnly = false,
   onChange = (data: any) => {
     console.log(`onChange: ${JSON.stringify(data)}`);
   },
   onFormat = (data: any) => {
-    console.log(`onChange: ${JSON.stringify(data)}`);
+    console.log(`onFormat: ${JSON.stringify(data)}`);
   },
   isShowHeader = false,
-  validatorConfig = {
-    maxSqlNum: 1,
-    validators: READ_VALIDATORS,
-  },
+  validatorConfig,
   ...props
 }: IAceEditorProps & {
   isShowHeader: boolean;
   onChange: (data: any) => void;
-  onFormat: (data: {
-    validateSqlResult: ValidateSqlResult;
-    isSqlValid: boolean;
-  }) => void;
+  onFormat: (data: any) => void;
   validatorConfig: { maxSqlNum: number; validators: ValidatorConfig[] };
 }) => {
   const [displaySql, setDisplaySql] = useState<string>(defaultValue);
@@ -66,25 +125,11 @@ export default ({
     editor.getSelection().on('changeSelection', () => {});
   }, []);
 
-  const getValidateSql = (value = ''): OnChangeRspData => {
-    const curVal = value || displaySql;
-    console.log(1);
-    const validateSqlResult = validateSql({
-      sql: curVal,
-      validators: validatorConfig.validators,
-    });
-    const isSqlValid =
-      validateSqlResult.sqlErrorType === SqlErrorTypeEnum.noError;
-    return {
+  const handleChange = async (value: string) => {
+    const result = getValidateSql({
       value,
-      isSqlValid,
-      validateSqlResult,
-    };
-  };
-
-  const handleChange = async (val: string) => {
-    setDisplaySql(val);
-    const result = getValidateSql(val);
+    });
+    setDisplaySql(value);
     onChange(result);
     if (result.validateSqlResult.message === 'success') setAnnotations([]);
     else
@@ -99,33 +144,6 @@ export default ({
     return result;
   };
 
-  const formatSql = (val = '') => {
-    const curVal = val || displaySql;
-    const result = getValidateSql(curVal);
-    if (result.isSqlValid) {
-      const formatResult = format(curVal);
-      setDisplaySql(formatResult);
-    }
-    onFormat(result);
-  };
-
-  const onDelete = () => {
-    setDisplaySql('');
-  };
-
-  const copyToClipboard = () => {
-    const el = document.createElement('textarea');
-    el.value = displaySql;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    setCopyTips('Copied');
-    setTimeout(() => {
-      setCopyTips('');
-    }, 2000);
-  };
-
   return (
     <div className={className}>
       {isShowHeader ? (
@@ -135,20 +153,29 @@ export default ({
               title="format"
               className={styles['sqleditor-format']}
               onClick={() => {
-                formatSql();
+                formatSql({
+                  value: displaySql,
+                  callback: ({ formatValue }) => {
+                    setDisplaySql(formatValue);
+                  },
+                });
               }}
             />
           </div>
           <div className={styles['menu-right']}>
             <div
               title={copyTips || 'copy'}
-              onClick={copyToClipboard}
+              onClick={() => {
+                copyToClipboard({ value: displaySql, callback: setCopyTips });
+              }}
               className={styles['sqleditor-copy']}
             />
             <div
               className={styles['sqleditor-delete']}
               title="delete"
-              onClick={onDelete}
+              onClick={() => {
+                setDisplaySql('');
+              }}
             />
           </div>
         </div>
@@ -164,7 +191,6 @@ export default ({
         value={displaySql}
         onLoad={onLoad}
         onChange={handleChange}
-        readOnly={readOnly}
         fontSize={fontSize}
         showGutter={showGutter}
         setOptions={setOptions}
@@ -175,18 +201,9 @@ export default ({
         enableBasicAutocompletion={enableBasicAutocompletion}
         enableLiveAutocompletion={enableLiveAutocompletion}
         {...props}
-        commands={[
-          {
-            name: 'enterSubmitSql',
-            bindKey: { win: 'Ctrl-Enter', mac: 'Command-Enter' },
-            exec: () => {
-              aceEditorRef.current
-                ? formatSql(aceEditorRef.current.props.value)
-                : formatSql();
-            },
-          },
-        ]}
       />
     </div>
   );
 };
+
+export default SqlEditor;

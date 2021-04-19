@@ -1,6 +1,5 @@
 import { AST } from 'node-sql-parser';
 import { SqlErrorTypeEnum } from './SqlEditor/sqlUtils/enum';
-
 export interface ValidateResult {
   validatorName: string;
   level: Level;
@@ -14,8 +13,7 @@ export interface ValidateSqlResult {
   sqlParseResult: SqlParseResult | null;
   validateResults: ValidateResult[];
 }
-
-export interface OnChangeRspData {
+export interface SqlChangedCallbackData {
   value: string;
   isSqlValid: boolean;
   validateSqlResult: ValidateSqlResult;
@@ -29,6 +27,7 @@ export interface ValidatorFuncProps {
   invalidMessage?: string;
 }
 export type Level = 'warn' | 'error' | 'pass';
+
 export type ValidatorFunc = ({
   extractedAstList,
   invalidMessage,
@@ -52,7 +51,7 @@ export interface SqlParseResult {
   }[];
 }
 
-interface ValidatorFuncProps {
+export interface ValidatorFuncProps {
   extractedAstList?: AST[];
   originTableList?: string[];
 }
