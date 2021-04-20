@@ -205,5 +205,3 @@ export const SqlEditor = ({
     </div>
   );
 };
-
-export default SqlEditor;
