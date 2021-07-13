@@ -44,8 +44,13 @@ export default () => (
     title="Sql Editor"
     width="auto"
     height="300px"
-    handleChange={data => {
+    isShowHeader={true}
+    onChange={data => {
       console.log(data);
+    }}
+    validatorConfig={{
+      maxSqlNum: 1,
+      validators: READ_VALIDATORS,
     }}
   />
 );

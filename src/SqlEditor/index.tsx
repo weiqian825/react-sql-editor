@@ -7,7 +7,11 @@ import 'ace-builds/src-min-noconflict/ext-language_tools';
 import 'ace-builds/src-min-noconflict/mode-mysql';
 import 'ace-builds/src-min-noconflict/snippets/mysql';
 import { validateSql } from './sqlUtils/helper';
-import { SqlChangedCallbackData, ValidatorConfig } from '../type';
+import {
+  SqlChangedCallbackData,
+  SqlOnformatData,
+  ValidatorConfig,
+} from '../type';
 import { READ_VALIDATORS } from './sqlUtils/sql';
 import { SqlErrorTypeEnum } from '..';
 import styles from './style.css';
@@ -18,7 +22,7 @@ export const getValidateSql = ({
     maxSqlNum: 1,
     validators: READ_VALIDATORS,
   },
-  callback = (data: any) => {
+  callback = (data: SqlChangedCallbackData) => {
     console.log(data);
   },
 }): SqlChangedCallbackData => {
@@ -41,10 +45,10 @@ export const formatSql = ({
     maxSqlNum: 1,
     validators: READ_VALIDATORS,
   },
-  callback = (data: any) => {
+  callback = (data: SqlChangedCallbackData) => {
     console.log(data);
   },
-}) => {
+}): SqlOnformatData => {
   const formatValue = format(value);
   const validateSqlResult = getValidateSql({
     value: formatValue,
@@ -78,6 +82,12 @@ export const copyToClipboard = ({
   }, 2000);
 };
 
+interface ISqlEditorProps extends Omit<IAceEditorProps, 'onChange'> {
+  isShowHeader?: boolean;
+  title?: string;
+  onChange: (data: SqlChangedCallbackData) => void;
+  validatorConfig?: { maxSqlNum: number; validators: ValidatorConfig[] };
+}
 export const SqlEditor = ({
   defaultValue = '',
   className,
@@ -98,21 +108,11 @@ export const SqlEditor = ({
     showLineNumbers: true,
     tabSize: 2,
   },
-  onChange = (data: any) => {
-    console.log(`onChange: ${JSON.stringify(data)}`);
-  },
-  onFormat = (data: any) => {
-    console.log(`onFormat: ${JSON.stringify(data)}`);
-  },
   isShowHeader = false,
+  onChange = () => {},
   validatorConfig,
   ...props
-}: IAceEditorProps & {
-  isShowHeader: boolean;
-  onChange: (data: any) => void;
-  onFormat: (data: any) => void;
-  validatorConfig: { maxSqlNum: number; validators: ValidatorConfig[] };
-}) => {
+}: ISqlEditorProps) => {
   const [displaySql, setDisplaySql] = useState<string>(defaultValue);
   const [copyTips, setCopyTips] = useState<string>('');
   const [annotations, setAnnotations] = useState<
@@ -153,12 +153,10 @@ export const SqlEditor = ({
               title="format"
               className={styles['sqleditor-format']}
               onClick={() => {
-                formatSql({
+                const { formatValue } = formatSql({
                   value: displaySql,
-                  callback: ({ formatValue }) => {
-                    setDisplaySql(formatValue);
-                  },
                 });
+                setDisplaySql(formatValue);
               }}
             />
           </div>

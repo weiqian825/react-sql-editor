@@ -52,8 +52,8 @@ export const getValidatorByKey = (keys: string[]) => {
 export const READ_VALIDATORS = getValidatorByKey([
   'isSystemSupportType',
   'hasWhereForTypesInNeed',
-  'limitForAllSelectQuery',
-  'limitNumForAllSelectQuery',
+  // 'limitForAllSelectQuery',
+  // 'limitNumForAllSelectQuery',
   'notForbiddenFunc',
   'notGroupBy',
   'notHaving',
@@ -64,8 +64,8 @@ export const READ_VALIDATORS = getValidatorByKey([
 export const WRITE_VALIDATORS = getValidatorByKey([
   'isSystemSupportType',
   'hasWhereForTypesInNeed',
-  'limitForAllSelectQuery',
-  'limitNumForAllSelectQuery',
+  // 'limitForAllSelectQuery',
+  // 'limitNumForAllSelectQuery',
   'notForbiddenFunc',
   'notGroupBy',
   'notHaving',

@@ -33,6 +33,7 @@
     "sql-formatter": "^4.0.2"
   },
   "devDependencies": {
+    "signale": "^1.4.0",
     "@types/jest": "^26.0.22",
     "@umijs/test": "^3.0.5",
     "dumi": "^1.0.13",

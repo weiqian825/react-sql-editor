@@ -19,14 +19,11 @@ export default () => (
     height="300px"
     isShowHeader={true}
     onChange={data => {
-      console.log(data);
-    }}
-    onFormat={data => {
-      console.log(data);
+      console.log('onChange', data);
     }}
     validatorConfig={{
       maxSqlNum: 1,
-      validators: READ_VALIDATORS,
+      // validators: READ_VALIDATORS,
     }}
   />
 );

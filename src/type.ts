@@ -18,6 +18,12 @@ export interface SqlChangedCallbackData {
   isSqlValid: boolean;
   validateSqlResult: ValidateSqlResult;
 }
+
+export interface SqlOnformatData {
+  formatValue: string;
+  value: string;
+  validateSqlResult: SqlChangedCallbackData;
+}
 export interface ValidateAstParams extends ValidatorFuncProps {
   validators: ValidatorConfig[];
 }
@@ -43,7 +49,7 @@ export interface SqlParseResult {
   fullTableList: string[];
   fullColumnList: string[];
   sqlDataList: {
-    ast: any;
+    ast: Object;
     sql: string;
     extractedAstList: AST[];
     tableList: string[];
