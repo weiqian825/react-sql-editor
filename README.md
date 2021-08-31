@@ -10,7 +10,7 @@ npm i react-sql-editor
 
 ## Demo
 
-https://github.com/weiqian93/react-sql-editor/blob/master/src/SqlEditor/index.md
+https://github.com/weiqian825/react-sql-editor/blob/master/src/SqlEditor/index.md
 
 ## Example Code
 
@@ -52,10 +52,10 @@ export default () => (
 
 ## validatorConfig Options
 
-| Key        | Default                                                                                              | Type     | Description           |
-| ---------- | ---------------------------------------------------------------------------------------------------- | -------- | --------------------- |
-| maxSqlNum  | 1                                                                                                    | Number   | support sql query num |
-| validators | [sqlValidatorRule](https://github.com/weiqian93/react-sql-editor/blob/master/src/SqlEditor/index.md) | Array< > | sql validator conf    |
+| Key        | Default                                                                                               | Type     | Description           |
+| ---------- | ----------------------------------------------------------------------------------------------------- | -------- | --------------------- |
+| maxSqlNum  | 1                                                                                                     | Number   | support sql query num |
+| validators | [sqlValidatorRule](https://github.com/weiqian825/react-sql-editor/blob/master/src/SqlEditor/index.md) | Array< > | sql validator conf    |
 
 ## Other Available Props
 
