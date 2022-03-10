@@ -9,12 +9,12 @@ import 'ace-builds/src-min-noconflict/snippets/mysql';
 import { validateSql } from './sqlUtils/helper';
 import {
   SqlChangedCallbackData,
-  SqlOnformatData,
+  SqlFormatData,
   ValidatorConfig,
 } from '../type';
 import { READ_VALIDATORS } from './sqlUtils/sql';
+import styles from './style.module.less';
 import { SqlErrorTypeEnum } from '..';
-import styles from './style.css';
 
 export const getValidateSql = ({
   value = '',
@@ -48,7 +48,7 @@ export const formatSql = ({
   callback = (data: SqlChangedCallbackData) => {
     console.log(data);
   },
-}): SqlOnformatData => {
+}): SqlFormatData => {
   const formatValue = format(value);
   const validateSqlResult = getValidateSql({
     value: formatValue,
@@ -85,12 +85,17 @@ export const copyToClipboard = ({
 interface ISqlEditorProps extends Omit<IAceEditorProps, 'onChange'> {
   isShowHeader?: boolean;
   title?: string;
+  copyTips?: string;
   onChange: (data: SqlChangedCallbackData) => void;
+  onClickFormat?: () => void;
+  onClickDelete?: () => void;
+  onClickCopy?: () => void;
   validatorConfig?: { maxSqlNum: number; validators: ValidatorConfig[] };
 }
 export const SqlEditor = ({
-  defaultValue = '',
   className,
+  copyTips = '',
+  defaultValue = '',
   placeholder = 'please input sql here',
   mode = 'mysql',
   name = 'sql editor',
@@ -108,13 +113,14 @@ export const SqlEditor = ({
     showLineNumbers: true,
     tabSize: 2,
   },
-  isShowHeader = false,
+  isShowHeader = true,
   onChange = () => {},
+  onClickFormat = () => {},
+  onClickDelete = () => {},
+  onClickCopy = () => {},
   validatorConfig,
   ...props
 }: ISqlEditorProps) => {
-  const [displaySql, setDisplaySql] = useState<string>(defaultValue);
-  const [copyTips, setCopyTips] = useState<string>('');
   const [annotations, setAnnotations] = useState<
     IAceEditorProps['annotations']
   >([]);
@@ -129,7 +135,6 @@ export const SqlEditor = ({
     const result = getValidateSql({
       value,
     });
-    setDisplaySql(value);
     onChange(result);
     if (result.validateSqlResult.message === 'success') setAnnotations([]);
     else
@@ -146,34 +151,25 @@ export const SqlEditor = ({
 
   return (
     <div className={className}>
-      {isShowHeader ? (
-        <div className={styles['sqleditor-menu']}>
-          <div className={styles['menu-left']}>
+      {isShowHeader === true ? (
+        <div className={styles.sqlEditorMenu}>
+          <div className={styles.menuLeft}>
             <div
               title="format"
-              className={styles['sqleditor-format']}
-              onClick={() => {
-                const { formatValue } = formatSql({
-                  value: displaySql,
-                });
-                setDisplaySql(formatValue);
-              }}
+              className={styles.sqlEditorFormat}
+              onClick={onClickFormat}
             />
           </div>
-          <div className={styles['menu-right']}>
+          <div className={styles.menuRight}>
             <div
               title={copyTips || 'copy'}
-              onClick={() => {
-                copyToClipboard({ value: displaySql, callback: setCopyTips });
-              }}
-              className={styles['sqleditor-copy']}
+              onClick={onClickCopy}
+              className={styles.sqlEditorCopy}
             />
             <div
-              className={styles['sqleditor-delete']}
               title="delete"
-              onClick={() => {
-                setDisplaySql('');
-              }}
+              onClick={onClickDelete}
+              className={styles.sqlEditorDelete}
             />
           </div>
         </div>
@@ -186,7 +182,7 @@ export const SqlEditor = ({
         name={name}
         width={width}
         height={height}
-        value={displaySql}
+        value={defaultValue}
         onLoad={onLoad}
         onChange={handleChange}
         fontSize={fontSize}

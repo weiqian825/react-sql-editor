@@ -19,7 +19,7 @@ export interface SqlChangedCallbackData {
   validateSqlResult: ValidateSqlResult;
 }
 
-export interface SqlOnformatData {
+export interface SqlFormatData {
   formatValue: string;
   value: string;
   validateSqlResult: SqlChangedCallbackData;
