@@ -78,9 +78,9 @@ const __validateSql = ({
     return {
       sqlParseResult: null,
       sqlErrorType: SqlErrorTypeEnum.syntaxError,
-      message: String(error.toString()),
+      message: String(error),
       validateResults: [],
-      uiMessages: String(error.toString()),
+      uiMessages: String(error),
     };
   }
 };
